@@ -10,6 +10,7 @@ import discord
 from discord import Intents
 from discord.ext import commands
 from dotenv import load_dotenv
+from discord import app_commands
 
 VOL_OPTIONS = {'format': 'worstaudio/best', 'noplaylist': 'False', 'simulate': 'True', 'key': 'FFmpegExtractAudio'}
 FFMPEG_OPTIONS = {
@@ -31,12 +32,27 @@ async def on_ready():
 
 
 @bot.hybrid_command(name='chort', description='Who is chort?')
-async def play_random(ctx):
+@app_commands.describe(names='Names to choose from')
+@app_commands.choices(names=[
+    discord.app_commands.Choice(name='Adbulmalik', value=1),
+    discord.app_commands.Choice(name='Abdurashid', value=2),
+    discord.app_commands.Choice(name='Arthur', value=3),
+    discord.app_commands.Choice(name='Burgers', value=4),
+    discord.app_commands.Choice(name='Ibrahim', value=5),
+    discord.app_commands.Choice(name='Ibrahim Chort', value=14),
+    discord.app_commands.Choice(name='Maga Abdal', value=6),
+    discord.app_commands.Choice(name='Maga Chort', value=7),
+    discord.app_commands.Choice(name='Maga Shlang', value=8),
+    discord.app_commands.Choice(name='Magashka', value=9),
+    discord.app_commands.Choice(name='Murad', value=10),
+    discord.app_commands.Choice(name='Muslim', value=11),
+    discord.app_commands.Choice(name='Pelin', value=12),
+    discord.app_commands.Choice(name='Yura', value=13)
+])
+async def play_random(ctx, names: discord.app_commands.Choice[int]):
     voice_channel = ctx.author.voice.channel
     vc = await voice_channel.connect()
-    audio_files = ['abdulmalik', 'arthur', 'adik', 'magaabdal', 'magachert', 'murad', 'muslim', 'pelinchert', 'yura', 'magahochu', 'magashka', 'rodinu', 'ibra']
-    random_audio = random.choice(audio_files)
-    vc.play(discord.FFmpegPCMAudio(random_audio + '.mp3'))
+    vc.play(discord.FFmpegPCMAudio(f'{names.value}.mp3'))
     await ctx.send('Playing..')
     while vc.is_playing():
         await asyncio.sleep(1)
