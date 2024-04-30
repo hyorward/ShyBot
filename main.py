@@ -1,14 +1,20 @@
 # bot.py
+import asyncio
 import http
 import requests
 import os
 import random
+import ffmpeg
 
 import discord
 from discord import Intents
 from discord.ext import commands
 from dotenv import load_dotenv
 
+VOL_OPTIONS = {'format': 'worstaudio/best', 'noplaylist': 'False', 'simulate': 'True', 'key': 'FFmpegExtractAudio'}
+FFMPEG_OPTIONS = {
+    'before_options': '-reconnect 1 - reconnect_streamed 1 - reconnect_delay_max 5', 'options': '-vn'
+}
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -22,6 +28,46 @@ bot = commands.Bot(command_prefix='/',intents=intents)
 async def on_ready():
     await bot.tree.sync()
     print('hui')
+
+
+@bot.hybrid_command(name='chort', description='Who is chort?')
+async def play_random(ctx):
+    voice_channel = ctx.author.voice.channel
+    vc = await voice_channel.connect()
+    audio_files = ['abdulmalik', 'arthur', 'adik', 'magaabdal', 'magachert', 'murad', 'muslim', 'pelinchert', 'yura', 'magahochu', 'magashka', 'rodinu', 'ibra']
+    random_audio = random.choice(audio_files)
+    vc.play(discord.FFmpegPCMAudio(random_audio + '.mp3'))
+    await ctx.send('Playing..')
+    while vc.is_playing():
+        await asyncio.sleep(1)
+    await vc.disconnect()
+    await ctx.send('Done')
+
+
+@bot.hybrid_command(name='blessyou', description='Bless you!')
+async def bless_random(ctx):
+    voice_channel = ctx.author.voice.channel
+    vc = await voice_channel.connect()
+    audio_files = ['blessyou', 'blessyou1']
+    random_audio = random.choice(audio_files)
+    vc.play(discord.FFmpegPCMAudio(random_audio + '.mp3'))
+    await ctx.send('Blessing..')
+    while vc.is_playing():
+        await asyncio.sleep(1)
+    await vc.disconnect()
+    await ctx.send('Done')
+
+
+@bot.hybrid_command(name='azan', description='Listen to the azan')
+async def azan_islam(ctx):
+    voice_channel = ctx.author.voice.channel
+    vc = await voice_channel.connect()
+    vc.play(discord.FFmpegPCMAudio('azan.mp3'))
+    await ctx.send('Listening..')
+    while vc.is_playing():
+        await asyncio.sleep(1)
+    await vc.disconnect()
+    await ctx.send('Done')
 
 
 @bot.hybrid_command(name='eblan', description='Who is eblan?')
