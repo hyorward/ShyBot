@@ -1,16 +1,15 @@
 # bot.py
 import asyncio
-import http
-import requests
 import os
 import random
-import ffmpeg
-
+from datetime import datetime
+import pytz
 import discord
+import requests
 from discord import Intents
-from discord.ext import commands
-from dotenv import load_dotenv
 from discord import app_commands
+from discord.ext import commands, tasks
+from dotenv import load_dotenv
 
 VOL_OPTIONS = {'format': 'worstaudio/best', 'noplaylist': 'False', 'simulate': 'True', 'key': 'FFmpegExtractAudio'}
 FFMPEG_OPTIONS = {
@@ -19,6 +18,7 @@ FFMPEG_OPTIONS = {
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+PRAYER_API_URL = 'http://api.aladhan.com/v1/timingsByCity'
 
 intents = Intents.default()
 intents.message_content = True
@@ -29,6 +29,49 @@ bot = commands.Bot(command_prefix='/',intents=intents)
 async def on_ready():
     await bot.tree.sync()
     print('hui')
+
+# async def get_prayer_times(city, country):
+#     params = {
+#         'city': city,
+#         'country': country,
+#         'method': 2
+#     }
+#     response = requests.get(PRAYER_API_URL, params=params)
+#     data = response.json()
+#     timings = data['data']['timings']
+#     return timings
+#
+#
+#
+#
+#
+#
+# @tasks.loop(minutes=1)
+# async def check_prayer_times(self, ctx: commands.Context):
+#     now = datetime.now(pytz.timezone('Europe/Moscow'))
+#     current_time = now.strftime('%H:%M')
+#     target_time = '19:13'
+#     print(current_time)
+#     if target_time == current_time:
+#         voice_channel = ctx.author.voice.channel
+#         vc = await voice_channel.connect()
+#         vc.play(discord.FFmpegPCMAudio('azan.mp3'))
+#         await ctx.send('Listening..')
+#         while vc.is_playing():
+#             await asyncio.sleep(1)
+#         await vc.disconnect()
+#         await ctx.send('Done')
+
+    # timings = await get_prayer_times('Makhachkala', 'Russia')
+    # for prayer, time in timings.items():
+    #     if current_time == time[:-3]:
+    #         for vc in bot.voice_clients:
+    #             if vc.is_connected():
+    #                 vc.play(discord.FFmpegPCMAudio('azan.mp3'))
+    #                 while vc.is_playing():
+    #                     asyncio.sleep(1)
+    #                 await vc.disconnect()
+
 
 
 @bot.hybrid_command(name='chort', description='Who is chort?')
@@ -60,6 +103,36 @@ async def play_random(ctx, names: discord.app_commands.Choice[int]):
     await ctx.send('Done')
 
 
+
+@bot.hybrid_command(name='soundpad', description='Different sounds from memes')
+@app_commands.describe(names='Names to choose from')
+@app_commands.choices(names=[
+    discord.app_commands.Choice(name='Down syndrome', value=15),
+    discord.app_commands.Choice(name='Blin, na..', value=16),
+    discord.app_commands.Choice(name='Bruh', value=17),
+    discord.app_commands.Choice(name='Kazakhstan bomb', value=18),
+    discord.app_commands.Choice(name="I'm a muslim", value=19),
+    discord.app_commands.Choice(name='To be continued..', value=20),
+    discord.app_commands.Choice(name="Don't bother me", value=21),
+    discord.app_commands.Choice(name="No", value=22),
+    discord.app_commands.Choice(name="Let's go..", value=23),
+    discord.app_commands.Choice(name="Good night", value=24),
+    discord.app_commands.Choice(name="KurbanHaji", value=25),
+    discord.app_commands.Choice(name="I'm a Dagestan", value=26),
+    discord.app_commands.Choice(name="The earth is round", value=27),
+    discord.app_commands.Choice(name="Do the tining", value=28)
+])
+async def play_random(ctx, names: discord.app_commands.Choice[int]):
+    voice_channel = ctx.author.voice.channel
+    vc = await voice_channel.connect()
+    vc.play(discord.FFmpegPCMAudio(f'{names.value}.mp3'))
+    await ctx.send('Playing..')
+    while vc.is_playing():
+        await asyncio.sleep(1)
+    await vc.disconnect()
+    await ctx.send('Done')
+
+
 @bot.hybrid_command(name='blessyou', description='Bless you!')
 async def bless_random(ctx):
     voice_channel = ctx.author.voice.channel
@@ -73,6 +146,29 @@ async def bless_random(ctx):
     await vc.disconnect()
     await ctx.send('Done')
 
+
+@bot.hybrid_command(name='goodmorning', description='Good Morning!')
+async def bless_random(ctx):
+    voice_channel = ctx.author.voice.channel
+    vc = await voice_channel.connect()
+    vc.play(discord.FFmpegPCMAudio('dobr.mp3'))
+    await ctx.send('Listening..')
+    while vc.is_playing():
+        await asyncio.sleep(1)
+    await vc.disconnect()
+    await ctx.send('Done')
+
+
+@bot.hybrid_command(name='podkol', description='Kirkorov meme')
+async def podkol_kirk(ctx):
+    voice_channel = ctx.author.voice.channel
+    vc = await  voice_channel.connect()
+    vc.play(discord.FFmpegPCMAudio('podkol.mp3'))
+    await ctx.send('Listening to Kirkorov..')
+    while vc.is_playing():
+        await asyncio.sleep(1)
+    await vc.disconnect()
+    await ctx.send('Done')
 
 @bot.hybrid_command(name='azan', description='Listen to the azan')
 async def azan_islam(ctx):
@@ -101,7 +197,8 @@ async def eblan(ctx: commands.Context):
         'MuradMewing': 'https://sun9-26.userapi.com/impg/L1EuCF7UpixAD-wrHxkN0OdQURegP43iKux06A/RUI5mQp0IjI.jpg?size=960x1280&quality=96&sign=4ecdf1dfa1f4e6e9e85518e0aded5244&type=album',
         'ShamilKaspiysky': 'https://sun9-73.userapi.com/impg/9ySZzhuTLuJkKO8YsHl5fNElCSvEfFbMUOw0Bg/SFQ4Sw8Nb-U.jpg?size=640x640&quality=96&sign=6fa3af09fad17d070c0d5b20714365cc&type=album',
         'Miguel': 'https://sun9-54.userapi.com/impg/Vwiw5p2Cl9imGIg9BYL-Ae2PDUHDEhXDJfxgcg/AMH2bO53dcs.jpg?size=961x1280&quality=96&sign=cce920539f6c670bd9e905195337fc60&type=album',
-        'Muslim': 'https://sun9-13.userapi.com/impg/iC7aVyilZK4nLbSQUEwlvcXk80r_Vf4tiKknyA/XJkKcIn2ppY.jpg?size=634x960&quality=95&sign=7fdca33dd205595fc7ea9079260da94a&type=album'
+        'Muslim': 'https://sun9-13.userapi.com/impg/iC7aVyilZK4nLbSQUEwlvcXk80r_Vf4tiKknyA/XJkKcIn2ppY.jpg?size=634x960&quality=95&sign=7fdca33dd205595fc7ea9079260da94a&type=album',
+        'Yura': 'https://sun9-76.userapi.com/impg/0xZFvyo3tMhBuyJNz6aEYRlK0OEsbCVFNt77YQ/m-sr1cZ-qc8.jpg?size=367x578&quality=96&sign=9a0c24eb9629f2df3c10a1ae2bd673a6&type=album'
     }
     (key, val) = random.choice(list(eblans.items()))
     e = discord.Embed(
