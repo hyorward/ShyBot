@@ -77,7 +77,7 @@ async def on_ready():
 @bot.hybrid_command(name='chort', description='Who is chort?')
 @app_commands.describe(names='Names to choose from')
 @app_commands.choices(names=[
-    discord.app_commands.Choice(name='Adbulmalik', value=1),
+    discord.app_commands.Choice(name='Abdulmalik', value=1),
     discord.app_commands.Choice(name='Abdurashid', value=2),
     discord.app_commands.Choice(name='Arthur', value=3),
     discord.app_commands.Choice(name='Burgers', value=4),
@@ -113,14 +113,25 @@ async def play_random(ctx, names: discord.app_commands.Choice[int]):
     discord.app_commands.Choice(name='Kazakhstan bomb', value=18),
     discord.app_commands.Choice(name="I'm a muslim", value=19),
     discord.app_commands.Choice(name='To be continued..', value=20),
-    discord.app_commands.Choice(name="Don't bother me", value=21),
     discord.app_commands.Choice(name="No", value=22),
     discord.app_commands.Choice(name="Let's go..", value=23),
     discord.app_commands.Choice(name="Good night", value=24),
     discord.app_commands.Choice(name="KurbanHaji", value=25),
     discord.app_commands.Choice(name="I'm a Dagestan", value=26),
     discord.app_commands.Choice(name="The earth is round", value=27),
-    discord.app_commands.Choice(name="Do the tining", value=28)
+    discord.app_commands.Choice(name="Do the tining", value=28),
+    discord.app_commands.Choice(name="I'm a georgian", value=29),
+    discord.app_commands.Choice(name="Avaretc...!", value=32),
+    discord.app_commands.Choice(name="Sheep came home", value=33),
+    discord.app_commands.Choice(name="Autumn", value=35),
+    discord.app_commands.Choice(name="Don't write here anymore", value=36),
+    discord.app_commands.Choice(name="Once you live...", value=37),
+    discord.app_commands.Choice(name="Working!", value=39),
+    discord.app_commands.Choice(name="What a luxury!", value=40),
+    discord.app_commands.Choice(name="Hello", value=42),
+    discord.app_commands.Choice(name="How do you tell with me?", value=43),
+    discord.app_commands.Choice(name="Assalamu Aleykum", value=44),
+    discord.app_commands.Choice(name="Laugh", value=45)
 ])
 async def play_random(ctx, names: discord.app_commands.Choice[int]):
     voice_channel = ctx.author.voice.channel
