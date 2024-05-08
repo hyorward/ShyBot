@@ -3,10 +3,11 @@ import asyncio
 import os
 import random
 from datetime import datetime
-import pytz
+
 import discord
+import pytz
 import requests
-from discord import Intents
+from discord import Intents, ChannelType
 from discord import app_commands
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -23,12 +24,17 @@ PRAYER_API_URL = 'http://api.aladhan.com/v1/timingsByCity'
 intents = Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='/',intents=intents)
+bot = commands.Bot(command_prefix='/', intents=intents)
+
+discord.opus.load_opus("libopus.dylib")
+
 
 @bot.event
 async def on_ready():
     await bot.tree.sync()
     print('hui')
+    check_prayer_times.start()
+
 
 # async def get_prayer_times(city, country):
 #     params = {
@@ -46,32 +52,24 @@ async def on_ready():
 #
 #
 #
-# @tasks.loop(minutes=1)
-# async def check_prayer_times(self, ctx: commands.Context):
-#     now = datetime.now(pytz.timezone('Europe/Moscow'))
-#     current_time = now.strftime('%H:%M')
-#     target_time = '19:13'
-#     print(current_time)
-#     if target_time == current_time:
-#         voice_channel = ctx.author.voice.channel
-#         vc = await voice_channel.connect()
-#         vc.play(discord.FFmpegPCMAudio('azan.mp3'))
-#         await ctx.send('Listening..')
-#         while vc.is_playing():
-#             await asyncio.sleep(1)
-#         await vc.disconnect()
-#         await ctx.send('Done')
-
-    # timings = await get_prayer_times('Makhachkala', 'Russia')
-    # for prayer, time in timings.items():
-    #     if current_time == time[:-3]:
-    #         for vc in bot.voice_clients:
-    #             if vc.is_connected():
-    #                 vc.play(discord.FFmpegPCMAudio('azan.mp3'))
-    #                 while vc.is_playing():
-    #                     asyncio.sleep(1)
-    #                 await vc.disconnect()
-
+@tasks.loop(minutes=1)
+async def check_prayer_times():
+    now = datetime.now(pytz.timezone('Europe/Moscow'))
+    current_time = now.strftime('%H:%M')
+    response = requests.get('http://api.aladhan.com/v1/timingsByCity',
+                            params={"city": "Makhachkala", "country": "Russia"})
+    all_timings = dict(response.json()['data']['timings'])
+    desired_timings = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+    timings = {timing: all_timings[timing] for timing in all_timings if timing in desired_timings}
+    if current_time in timings.values():
+        for channel in bot.get_all_channels():
+            if channel.type.value == ChannelType.voice.value:
+                if len(channel.members) > 0:
+                    vc = await channel.connect()
+                    vc.play(discord.FFmpegPCMAudio('azan.mp3'))
+                    while vc.is_playing():
+                        await asyncio.sleep(1)
+                    await vc.disconnect()
 
 
 @bot.hybrid_command(name='chort', description='Who is chort?')
@@ -101,7 +99,6 @@ async def play_random(ctx, names: discord.app_commands.Choice[int]):
         await asyncio.sleep(1)
     await vc.disconnect()
     await ctx.send('Done')
-
 
 
 @bot.hybrid_command(name='soundpad', description='Different sounds from memes')
@@ -181,6 +178,7 @@ async def podkol_kirk(ctx):
     await vc.disconnect()
     await ctx.send('Done')
 
+
 @bot.hybrid_command(name='azan', description='Listen to the azan')
 async def azan_islam(ctx):
     voice_channel = ctx.author.voice.channel
@@ -220,13 +218,12 @@ async def eblan(ctx: commands.Context):
     await ctx.send(embed=e)
 
 
-
-
 @bot.hybrid_command(name='online', description='Langcraft online')
 async def langcraft_online(ctx: commands.Context):
     response = requests.get('https://backend.langcraft.site/api/v1/server-info/')
     online = response.json()['players_count']
     await ctx.send(f'**Langcraft online: {online}**')
+
 
 @bot.hybrid_command(name='nation', description='Langcraft nation')
 async def langcraft_nation(ctx: commands.Context):
@@ -245,5 +242,5 @@ async def langcraft_nation(ctx: commands.Context):
     e.set_image(url=flag)
     await ctx.send(embed=e)
 
-bot.run(TOKEN)
 
+bot.run(TOKEN)
